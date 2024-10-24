@@ -1,4 +1,4 @@
-package guru.springframework.msscssm;
+package guru.springframework.msscssm.config;
 
 import java.util.UUID;
 
@@ -14,7 +14,7 @@ import guru.springframework.msscssm.domain.PaymentState;
 import reactor.core.publisher.Mono;
 
 @SpringBootTest
-public class StateMachieConfigTest {
+public class StateMachineConfigTest {
 
     @Autowired
     StateMachineFactory<PaymentState, PaymentEvent> factory;
@@ -34,6 +34,7 @@ public class StateMachieConfigTest {
         sm.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTH_APPROVED).build()))
             .subscribe();
         System.out.println("**PRE_AUTH_APPROVED**" +sm.getState().toString());
+        System.out.println("**SM GETID**" +sm.getState().getId());
 
     }
 }
