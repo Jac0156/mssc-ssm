@@ -43,7 +43,9 @@ public class PaymentServiceImpl implements PaymentService{
     public StateMachine<PaymentState, PaymentEvent> authorizePayment(Long paymentId) {
         StateMachine<PaymentState, PaymentEvent> sm = build(paymentId);
 
-        sendEvent(paymentId, sm, PaymentEvent.AUTH_APPROVED);
+        System.out.println("## authorizePayment : " + sm.getState().getId());
+        
+        sendEvent(paymentId, sm, PaymentEvent.AUTHORIZE);
         return sm;
     }
 
@@ -73,16 +75,21 @@ public class PaymentServiceImpl implements PaymentService{
 
         Payment payment = paymentRepository.getReferenceById(paymentId);
 
+        System.out.println("## build payment state(1) : " + payment.getState());
+        
         StateMachine<PaymentState, PaymentEvent> sm = stateMachineFactory.getStateMachine(Long.toString(payment.getId()));
-
+        
+        
         sm.stopReactively().block();
         sm.getStateMachineAccessor()
-            .doWithAllRegions(sma -> {
-                sma.addStateMachineInterceptor(paymentStateChangeInterceptor);
-                sma.resetStateMachineReactively(new
-                    DefaultStateMachineContext<PaymentState,PaymentEvent>(payment.getState(), null, null, null));
-            });
+        .doWithAllRegions(sma -> {
+            sma.addStateMachineInterceptor(paymentStateChangeInterceptor);
+            sma.resetStateMachineReactively(new
+            DefaultStateMachineContext<PaymentState,PaymentEvent>(payment.getState(), null, null, null)).block();
+        });
         sm.startReactively().block();
+
+        System.out.println("## build payment state(2) : ");
 
         return sm;
     }

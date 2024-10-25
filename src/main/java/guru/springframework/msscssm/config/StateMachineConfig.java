@@ -53,6 +53,22 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
                 .source(PaymentState.NEW)
                 .target(PaymentState.PRE_AUTH_ERROR)
                 .event(PaymentEvent.PRE_AUTH_DECLINED)
+            .and()
+            .withExternal()
+                .source(PaymentState.PRE_AUTH)
+                .target(PaymentState.PRE_AUTH)
+                .event(PaymentEvent.AUTHORIZE)
+                .action(authAction())
+            .and()
+            .withExternal()
+                .source(PaymentState.PRE_AUTH)
+                .target(PaymentState.AUTH)
+                .event(PaymentEvent.AUTH_APPROVED)
+            .and()
+            .withExternal()
+                .source(PaymentState.PRE_AUTH)
+                .target(PaymentState.AUTH_ERROR)
+                .event(PaymentEvent.AUTH_DECLINED)
         ;
     }
 
@@ -91,7 +107,34 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
                         .setHeader(PaymentServiceImpl.PAYMENT_ID_HEADER, context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER))
                         .build()
                     ))
-                    .subscribe();;
+                    .subscribe();
+            }
+        };
+    }
+
+    public Action<PaymentState, PaymentEvent> authAction() {
+
+        return context -> {
+            System.out.println("## Auth was called!");
+
+            if (new Random().nextInt(10) < 8) {
+                System.out.println("Approved");
+                context.getStateMachine().sendEvent(Mono.just(
+                    MessageBuilder
+                        .withPayload(PaymentEvent.AUTH_APPROVED)
+                        .setHeader(PaymentServiceImpl.PAYMENT_ID_HEADER, context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER))
+                        .build()
+                    ))
+                    .subscribe();
+            } else {
+                System.out.println("Declined");
+                context.getStateMachine().sendEvent(Mono.just(
+                    MessageBuilder
+                        .withPayload(PaymentEvent.AUTH_DECLINED)
+                        .setHeader(PaymentServiceImpl.PAYMENT_ID_HEADER, context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER))
+                        .build()
+                    ))
+                    .subscribe();
             }
         };
     }
