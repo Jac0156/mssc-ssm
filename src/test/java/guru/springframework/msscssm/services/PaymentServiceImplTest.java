@@ -3,6 +3,7 @@ package guru.springframework.msscssm.services;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,7 +52,7 @@ public class PaymentServiceImplTest {
     }
 
     @Transactional
-    @Test
+    @RepeatedTest(10)
     void testAuth() {
         Payment savedPayment = paymentService.newPayment(payment);
 
